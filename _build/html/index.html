@@ -78,7 +78,34 @@
             
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Welcome to OptiFEM’s documentation!</a></li>
+<li><a class="reference internal" href="#">Welcome to OptiFEM’s documentation!</a><ul>
+<li><a class="reference internal" href="#introduction">Introduction</a></li>
+<li><a class="reference internal" href="#jinja2-like-syntax">Jinja2-like syntax</a><ul>
+<li><a class="reference internal" href="#restrictions">Restrictions</a></li>
+<li><a class="reference internal" href="#extensions">Extensions</a><ul>
+<li><a class="reference internal" href="#tags">Tags</a></li>
+<li><a class="reference internal" href="#display-variables">Display variables</a></li>
+<li><a class="reference internal" href="#cell-color">Cell color</a></li>
+<li><a class="reference internal" href="#column-spanning">Column spanning</a></li>
+<li><a class="reference internal" href="#escaping">Escaping</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#richtext">RichText</a></li>
+<li><a class="reference internal" href="#inline-image">Inline image</a></li>
+<li><a class="reference internal" href="#sub-documents">Sub-documents</a></li>
+<li><a class="reference internal" href="#escaping-newline-new-paragraph-listing">Escaping, newline, new paragraph, Listing</a></li>
+<li><a class="reference internal" href="#replace-docx-pictures">Replace docx pictures</a></li>
+<li><a class="reference internal" href="#replace-docx-medias">Replace docx medias</a></li>
+<li><a class="reference internal" href="#replace-embedded-objects">Replace embedded objects</a></li>
+<li><a class="reference internal" href="#microsoft-word-2016-special-cases">Microsoft Word 2016 special cases</a></li>
+<li><a class="reference internal" href="#tables">Tables</a></li>
+<li><a class="reference internal" href="#jinja-custom-filters">Jinja custom filters</a></li>
+<li><a class="reference internal" href="#examples">Examples</a></li>
+<li><a class="reference internal" href="#share">Share</a></li>
+</ul>
+</li>
 <li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 </div>
@@ -147,6 +174,289 @@
   <div class="section" id="welcome-to-optifem-s-documentation">
 <h1>Welcome to OptiFEM’s documentation!<a class="headerlink" href="#welcome-to-optifem-s-documentation" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
+</div>
+<p class="rubric">Quickstart</p>
+<p>To install:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">pip</span> <span class="n">install</span> <span class="n">docxtpl</span>
+</pre></div>
+</div>
+<p>Usage:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">docxtpl</span> <span class="k">import</span> <span class="n">DocxTemplate</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocxTemplate</span><span class="p">(</span><span class="s2">&quot;my_word_template.docx&quot;</span><span class="p">)</span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;company_name&#39;</span> <span class="p">:</span> <span class="s2">&quot;World company&quot;</span> <span class="p">}</span>
+<span class="n">doc</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">)</span>
+<span class="n">doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;generated_doc.docx&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>This package uses 2 major packages :</p>
+<ul class="simple">
+<li>python-docx for reading, writing and creating sub documents</li>
+<li>jinja2 for managing tags inserted into the template docx</li>
+</ul>
+<p>python-docx-template has been created because python-docx is powerful for creating documents but not for modifying them.</p>
+<p>The idea is to begin to create an example of the document you want to generate with microsoft word, it can be as complex as you want :
+pictures, index tables, footer, header, variables, anything you can do with word.
+Then, as you are still editing the document with microsoft word, you insert jinja2-like tags directly in the document.
+You save the document as a .docx file (xml format) : it will be your .docx template file.</p>
+<p>Now you can use python-docx-template to generate as many word documents you want from this .docx template and context variables you will associate.</p>
+<p>Note : python-docx-template as been tested with MS Word 97, it may not work with other version.</p>
+</div>
+<div class="section" id="jinja2-like-syntax">
+<h2>Jinja2-like syntax<a class="headerlink" href="#jinja2-like-syntax" title="Permalink to this headline">¶</a></h2>
+<p>As the Jinja2 package is used, one can use all jinja2 tags and filters inside the word document.
+Nevertheless there are some restrictions and extensions to make it work inside a word document:</p>
+<div class="section" id="restrictions">
+<h3>Restrictions<a class="headerlink" href="#restrictions" title="Permalink to this headline">¶</a></h3>
+<p>The usual jinja2 tags, are only to be used inside a same run of a same paragraph, it can not be used across several paragraphs, table rows, runs.
+If you want to manage paragraphs, table rows and a whole run with its style, you must use special tag syntax as explained in next chapter.</p>
+<p>Note : a ‘run’ for microsoft word is a sequence of characters with the same style. For example, if you create a paragraph with all characters the same style :
+word will create internally only one ‘run’ in the paragraph. Now, if you put in bold a text in the middle of this paragraph, word will transform the previous ‘run’ into 3 ‘runs’ (normal - bold - normal).</p>
+</div>
+<div class="section" id="extensions">
+<h3>Extensions<a class="headerlink" href="#extensions" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="tags">
+<h4>Tags<a class="headerlink" href="#tags" title="Permalink to this headline">¶</a></h4>
+<p>In order to manage paragraphs, table rows, table columns, runs, special syntax has to be used</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span><span class="n">p</span> <span class="n">jinja2_tag</span> <span class="o">%</span><span class="p">}</span> <span class="k">for</span> <span class="n">paragraphs</span>
+<span class="p">{</span><span class="o">%</span><span class="n">tr</span> <span class="n">jinja2_tag</span> <span class="o">%</span><span class="p">}</span> <span class="k">for</span> <span class="n">table</span> <span class="n">rows</span>
+<span class="p">{</span><span class="o">%</span><span class="n">tc</span> <span class="n">jinja2_tag</span> <span class="o">%</span><span class="p">}</span> <span class="k">for</span> <span class="n">table</span> <span class="n">columns</span>
+<span class="p">{</span><span class="o">%</span><span class="n">r</span> <span class="n">jinja2_tag</span> <span class="o">%</span><span class="p">}</span> <span class="k">for</span> <span class="n">runs</span>
+</pre></div>
+</div>
+<p>By using these tags, python-docx-template will take care to put the real jinja2 tags at the right place into the document’s xml source code.
+In addition, these tags also tells python-docx-template to <strong>remove</strong> the paragraph, table row, table column or run where are located the begin and ending tags and only takes care about what is in between.</p>
+<p><strong>IMPORTANT</strong> : Do not use 2 times <code class="docutils literal notranslate"><span class="pre">{%p</span></code>, <code class="docutils literal notranslate"><span class="pre">{%tr</span></code>,``{%tc``, <code class="docutils literal notranslate"><span class="pre">{%r</span></code> in the same
+paragraph, row, column or run. Example :</p>
+<p>Do not use this</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span><span class="n">p</span> <span class="k">if</span> <span class="n">display_paragraph</span> <span class="o">%</span><span class="p">}</span><span class="n">Here</span> <span class="ow">is</span> <span class="n">my</span> <span class="n">paragraph</span> <span class="p">{</span><span class="o">%</span><span class="n">p</span> <span class="n">endif</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>But use this instead in your docx template</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span><span class="n">p</span> <span class="k">if</span> <span class="n">display_paragraph</span> <span class="o">%</span><span class="p">}</span>
+<span class="n">Here</span> <span class="ow">is</span> <span class="n">my</span> <span class="n">paragraph</span>
+<span class="p">{</span><span class="o">%</span><span class="n">p</span> <span class="n">endif</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>This syntax is possible because msword consider each line as a new paragraph and
+<code class="docutils literal notranslate"><span class="pre">{%p</span></code> tags are not in the same paragraph</p>
+</div>
+<div class="section" id="display-variables">
+<h4>Display variables<a class="headerlink" href="#display-variables" title="Permalink to this headline">¶</a></h4>
+<p>As part of jinja2, one can used double braces:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{{</span> <span class="o">&lt;</span><span class="n">var</span><span class="o">&gt;</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>But if <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code> is an RichText object, you must specify that you are changing the actual ‘run’</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{{</span><span class="n">r</span> <span class="o">&lt;</span><span class="n">var</span><span class="o">&gt;</span> <span class="p">}}</span>
+</pre></div>
+</div>
+<p>Note the <code class="docutils literal notranslate"><span class="pre">r</span></code> right after the openning braces.</p>
+<p><strong>IMPORTANT</strong> : Do not use the <code class="docutils literal notranslate"><span class="pre">r</span></code> variable in your template because <code class="docutils literal notranslate"><span class="pre">{{r}}</span></code> could be interpreted as a <code class="docutils literal notranslate"><span class="pre">{{r</span></code>
+without variable specified. Nevertheless, you can use a bigger variable name starting
+with ‘r’. For example <code class="docutils literal notranslate"><span class="pre">{{render_color}}</span></code> will be interpreted as <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">render_color</span> <span class="pre">}}</span></code> not as <code class="docutils literal notranslate"><span class="pre">{{r</span> <span class="pre">ender_color}}</span></code>.</p>
+<p><strong>IMPORTANT</strong> : Do not use 2 times <code class="docutils literal notranslate"><span class="pre">{{r</span></code> in the same run. Use RichText.add()
+method to concatenate several strings and styles at python side and only one
+<code class="docutils literal notranslate"><span class="pre">{{r</span></code> at template side.</p>
+</div>
+<div class="section" id="cell-color">
+<h4>Cell color<a class="headerlink" href="#cell-color" title="Permalink to this headline">¶</a></h4>
+<p>There is a special case when you want to change the background color of a table cell, you must put the following tag at the very beginning of the cell</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="n">cellbg</span> <span class="o">&lt;</span><span class="n">var</span><span class="o">&gt;</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>&lt;var&gt;</cite> must contain the color’s hexadecimal code <em>without</em> the hash sign</p>
+</div>
+<div class="section" id="column-spanning">
+<h4>Column spanning<a class="headerlink" href="#column-spanning" title="Permalink to this headline">¶</a></h4>
+<p>If you want to dynamically span a table cell over many column (this is useful when you have a table with a dynamic column count),
+you must put the following tag at the very beginning of the cell to span</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="n">colspan</span> <span class="o">&lt;</span><span class="n">var</span><span class="o">&gt;</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p><cite>&lt;var&gt;</cite> must contain an integer for the number of columns to span. See tests/test_files/dynamic_table.py for an example.</p>
+</div>
+<div class="section" id="escaping">
+<h4>Escaping<a class="headerlink" href="#escaping" title="Permalink to this headline">¶</a></h4>
+<p>In order to display <code class="docutils literal notranslate"><span class="pre">{%</span></code>, <code class="docutils literal notranslate"><span class="pre">%}</span></code>, <code class="docutils literal notranslate"><span class="pre">{{</span></code> or <code class="docutils literal notranslate"><span class="pre">}}</span></code>, one can use</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="n">_</span><span class="o">%</span><span class="p">,</span> <span class="o">%</span><span class="n">_</span><span class="p">},</span> <span class="p">{</span><span class="n">_</span><span class="p">{</span> <span class="ow">or</span>  <span class="p">}</span><span class="n">_</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+</div>
+<div class="section" id="richtext">
+<h2>RichText<a class="headerlink" href="#richtext" title="Permalink to this headline">¶</a></h2>
+<p>When you use <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code> tag in your template, it will be replaced by the string contained within <cite>var</cite> variable.
+BUT it will keep the current style.
+If you want to add dynamically changeable style, you have to use both : the <code class="docutils literal notranslate"><span class="pre">{{r</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code> tag AND a <code class="docutils literal notranslate"><span class="pre">RichText</span></code> object within <cite>var</cite> variable.
+You can change color, bold, italic, size and so on, but the best way is to use Microsoft Word to define your own <em>caracter</em> style
+( Home tab -&gt; modify style -&gt; manage style button -&gt; New style, select ‘Character style’ in the form ), see example in <cite>tests/richtext.py</cite>
+Instead of using <code class="docutils literal notranslate"><span class="pre">RichText()</span></code>, one can use its shortcut : <code class="docutils literal notranslate"><span class="pre">R()</span></code></p>
+<p><strong>Important</strong> : When you use <code class="docutils literal notranslate"><span class="pre">{{r</span> <span class="pre">}}</span></code> it removes the current character styling from your docx template, this means that if
+you do not specify a style in <code class="docutils literal notranslate"><span class="pre">RichText()</span></code>, the style will go back to a microsoft word default style.
+This will affect only character styles, not the paragraph styles (MSWord manages this 2 kind of styles).</p>
+<p>You can add an hyperlink to a text by using a Richtext with this syntax</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tpl</span><span class="o">=</span><span class="n">DocxTemplate</span><span class="p">(</span><span class="s1">&#39;your_template.docx&#39;</span><span class="p">)</span>
+<span class="n">rt</span> <span class="o">=</span> <span class="n">RichText</span><span class="p">(</span><span class="s1">&#39;You can add an hyperlink, here to &#39;</span><span class="p">)</span>
+<span class="n">rt</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="s1">&#39;google&#39;</span><span class="p">,</span><span class="n">url_id</span><span class="o">=</span><span class="n">tpl</span><span class="o">.</span><span class="n">build_url_id</span><span class="p">(</span><span class="s1">&#39;http://google.com&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>Put <code class="docutils literal notranslate"><span class="pre">rt</span></code> in your context, then use <code class="docutils literal notranslate"><span class="pre">{{r</span> <span class="pre">rt}}</span></code> in your template</p>
+</div>
+<div class="section" id="inline-image">
+<h2>Inline image<a class="headerlink" href="#inline-image" title="Permalink to this headline">¶</a></h2>
+<p>You can dynamically add one or many images into your document (tested with JPEG and PNG files).
+just add <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code> tag in your template where <code class="docutils literal notranslate"><span class="pre">&lt;var&gt;</span></code> is an instance of doxtpl.InlineImage</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">myimage</span> <span class="o">=</span> <span class="n">InlineImage</span><span class="p">(</span><span class="n">tpl</span><span class="p">,</span><span class="s1">&#39;test_files/python_logo.png&#39;</span><span class="p">,</span><span class="n">width</span><span class="o">=</span><span class="n">Mm</span><span class="p">(</span><span class="mi">20</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>You just have to specify the template object, the image file path and optionnally width and/or height.
+For height and width you have to use millimeters (Mm), inches (Inches) or points(Pt) class.
+Please see tests/inline_image.py for an example.</p>
+</div>
+<div class="section" id="sub-documents">
+<h2>Sub-documents<a class="headerlink" href="#sub-documents" title="Permalink to this headline">¶</a></h2>
+<p>A template variable can contain a complex and built from scratch with python-docx word document.
+To do so, get first a sub-document object from template object and use it as a python-docx document object, see example in <cite>tests/subdoc.py</cite>.</p>
+</div>
+<div class="section" id="escaping-newline-new-paragraph-listing">
+<h2>Escaping, newline, new paragraph, Listing<a class="headerlink" href="#escaping-newline-new-paragraph-listing" title="Permalink to this headline">¶</a></h2>
+<p>When you use a <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code>, you are modifying an <strong>XML</strong> word document, this means you cannot use all chars,
+especially <code class="docutils literal notranslate"><span class="pre">&lt;</span></code>, <code class="docutils literal notranslate"><span class="pre">&gt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&amp;</span></code>. In order to use them, you must escape them. There are 4 ways :</p>
+<blockquote>
+<div><ul class="simple">
+<li><code class="docutils literal notranslate"><span class="pre">context</span> <span class="pre">=</span> <span class="pre">{</span> <span class="pre">'var':R('my</span> <span class="pre">text')</span> <span class="pre">}</span></code> and <code class="docutils literal notranslate"><span class="pre">{{r</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code> in the template (note the <code class="docutils literal notranslate"><span class="pre">r</span></code>),</li>
+<li><code class="docutils literal notranslate"><span class="pre">context</span> <span class="pre">=</span> <span class="pre">{</span> <span class="pre">'var':'my</span> <span class="pre">text'}</span></code> and <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">&lt;var&gt;|e</span> <span class="pre">}}</span></code> in your word template</li>
+<li><code class="docutils literal notranslate"><span class="pre">context</span> <span class="pre">=</span> <span class="pre">{</span> <span class="pre">'var':escape('my</span> <span class="pre">text')}</span></code> and <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">&lt;var&gt;</span> <span class="pre">}}</span></code> in the template.</li>
+<li>enable autoescaping when calling render method: <code class="docutils literal notranslate"><span class="pre">tpl.render(context,</span> <span class="pre">autoescape=True)</span></code> (default is autoescape=False)</li>
+</ul>
+</div></blockquote>
+<p>The <code class="docutils literal notranslate"><span class="pre">RichText()</span></code> or <code class="docutils literal notranslate"><span class="pre">R()</span></code> offers newline, new paragraph, and page break features : just use <code class="docutils literal notranslate"><span class="pre">\n</span></code>, <code class="docutils literal notranslate"><span class="pre">\a</span></code>, or <code class="docutils literal notranslate"><span class="pre">\f</span></code> in the
+text, they will be converted accordingly.</p>
+<p>See tests/escape.py example for more informations.</p>
+<p>Another solution, if you want to include a listing into your document, that is to escape the text and manage n, a, and f
+you can use the <code class="docutils literal notranslate"><span class="pre">Listing</span></code> class :</p>
+<p>in your python code</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">context</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;mylisting&#39;</span><span class="p">:</span><span class="n">Listing</span><span class="p">(</span><span class="s1">&#39;the listing</span><span class="se">\n</span><span class="s1">with</span><span class="se">\n</span><span class="s1">some</span><span class="se">\n</span><span class="s1">lines </span><span class="se">\a</span><span class="s1"> and some paragraph </span><span class="se">\a</span><span class="s1"> and special chars : &lt;&gt;&amp;&#39;</span><span class="p">)</span> <span class="p">}</span>
+</pre></div>
+</div>
+<p>in your docx template just use <code class="docutils literal notranslate"><span class="pre">{{</span> <span class="pre">mylisting</span> <span class="pre">}}</span></code>
+With <code class="docutils literal notranslate"><span class="pre">Listing()</span></code>, you will keep the current character styling (except after a <code class="docutils literal notranslate"><span class="pre">\a</span></code> as you start a new paragraph).</p>
+</div>
+<div class="section" id="replace-docx-pictures">
+<h2>Replace docx pictures<a class="headerlink" href="#replace-docx-pictures" title="Permalink to this headline">¶</a></h2>
+<p>It is not possible to dynamically add images in header/footer, but you can change them.
+The idea is to put a dummy picture in your template, render the template as usual, then replace the dummy picture with another one.
+You can do that for all medias at the same time.
+Note: the aspect ratio will be the same as the replaced image
+Note2 : Specify the filename that has been used to insert the image in the docx template (only its basename, not the full path)</p>
+<p>Syntax to replace dummy_header_pic.jpg:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tpl</span><span class="o">.</span><span class="n">replace_pic</span><span class="p">(</span><span class="s1">&#39;dummy_header_pic.jpg&#39;</span><span class="p">,</span><span class="s1">&#39;header_pic_i_want.jpg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The replacement occurs in headers, footers and the whole document’s body.</p>
+</div>
+<div class="section" id="replace-docx-medias">
+<h2>Replace docx medias<a class="headerlink" href="#replace-docx-medias" title="Permalink to this headline">¶</a></h2>
+<p>It is not possible to dynamically add other medias than images in header/footer, but you can change them.
+The idea is to put a dummy media in your template, render the template as usual, then replace the dummy media with another one.
+You can do that for all medias at the same time.
+Note: for images, the aspect ratio will be the same as the replaced image
+Note2 : it is important to have the source media files as they are required to calculate their CRC to find them in the docx.
+(dummy file name is not important)</p>
+<p>Syntax to replace dummy_header_pic.jpg:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tpl</span><span class="o">.</span><span class="n">replace_media</span><span class="p">(</span><span class="s1">&#39;dummy_header_pic.jpg&#39;</span><span class="p">,</span><span class="s1">&#39;header_pic_i_want.jpg&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>WARNING : unlike replace_pic() method, dummy_header_pic.jpg MUST exist in the template directory when rendering and saving the generated docx. It must be the same
+file as the one inserted manually in the docx template.
+The replacement occurs in headers, footers and the whole document’s body.</p>
+</div>
+<div class="section" id="replace-embedded-objects">
+<h2>Replace embedded objects<a class="headerlink" href="#replace-embedded-objects" title="Permalink to this headline">¶</a></h2>
+<p>It works like medias replacement, except it is for embedded objects like embedded docx.</p>
+<p>Syntax to replace embedded_dummy.docx:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tpl</span><span class="o">.</span><span class="n">replace_embedded</span><span class="p">(</span><span class="s1">&#39;embdded_dummy.docx&#39;</span><span class="p">,</span><span class="s1">&#39;embdded_docx_i_want.docx&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>WARNING : unlike replace_pic() method, embdded_dummy.docx MUST exist in the template directory when rendering and saving the generated docx. It must be the same
+file as the one inserted manually in the docx template.
+The replacement occurs in headers, footers and the whole document’s body.</p>
+</div>
+<div class="section" id="microsoft-word-2016-special-cases">
+<h2>Microsoft Word 2016 special cases<a class="headerlink" href="#microsoft-word-2016-special-cases" title="Permalink to this headline">¶</a></h2>
+<p>MS Word 2016 will ingore <code class="docutils literal notranslate"><span class="pre">\t</span></code> tabulations. This is special to that version.
+Libreoffice or Wordpad do not have this problem. The same thing occurs for line
+beginning with a jinja2 tag provinding spaces : They will be ignored.
+To solve these problem, the solution is to use Richtext:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">tpl</span><span class="o">.</span><span class="n">render</span><span class="p">({</span>
+    <span class="s1">&#39;test_space_r&#39;</span> <span class="p">:</span> <span class="n">RichText</span><span class="p">(</span><span class="s1">&#39;          &#39;</span><span class="p">),</span>
+    <span class="s1">&#39;test_tabs_r&#39;</span><span class="p">:</span> <span class="n">RichText</span><span class="p">(</span><span class="mi">5</span><span class="o">*</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">),</span>
+<span class="p">})</span>
+</pre></div>
+</div>
+<p>And in your template, use the {{r notation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{{</span><span class="n">r</span> <span class="n">test_space_r</span><span class="p">}}</span> <span class="n">Spaces</span> <span class="n">will</span> <span class="n">be</span> <span class="n">preserved</span>
+<span class="p">{{</span><span class="n">r</span> <span class="n">test_tabs_r</span><span class="p">}}</span> <span class="n">Tabs</span> <span class="n">will</span> <span class="n">be</span> <span class="n">displayed</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="tables">
+<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
+<p>You can span table cells horizontally in two ways, by using <code class="docutils literal notranslate"><span class="pre">colspan</span></code> tag (see tests/dynamic_table.py):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="n">colspan</span> <span class="o">&lt;</span><span class="n">number</span> <span class="n">of</span> <span class="n">column</span> <span class="n">to</span> <span class="n">span</span><span class="o">&gt;</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>or within a for loop (see tests/horizontal_merge.py):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="n">hm</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+<p>You can also merge cells vertically within a for loop (see tests/vertical_merge.py):</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">{</span><span class="o">%</span> <span class="n">vm</span> <span class="o">%</span><span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="jinja-custom-filters">
+<h2>Jinja custom filters<a class="headerlink" href="#jinja-custom-filters" title="Permalink to this headline">¶</a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">render()</span></code> accepts <code class="docutils literal notranslate"><span class="pre">jinja_env</span></code> optionnal argument : you may pass a jinja environment object.
+By this way you will be able to add some custom jinja filters:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">docxtpl</span> <span class="k">import</span> <span class="n">DocxTemplate</span>
+<span class="kn">import</span> <span class="nn">jinja2</span>
+
+<span class="k">def</span> <span class="nf">multiply_by</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">by</span><span class="p">):</span>
+   <span class="k">return</span> <span class="n">value</span> <span class="o">*</span> <span class="n">by</span>
+
+<span class="n">doc</span> <span class="o">=</span> <span class="n">DocxTemplate</span><span class="p">(</span><span class="s2">&quot;my_word_template.docx&quot;</span><span class="p">)</span>
+<span class="n">context</span> <span class="o">=</span> <span class="p">{</span> <span class="s1">&#39;price_dollars&#39;</span> <span class="p">:</span> <span class="mf">5.00</span> <span class="p">}</span>
+<span class="n">jinja_env</span> <span class="o">=</span> <span class="n">jinja2</span><span class="o">.</span><span class="n">Environment</span><span class="p">()</span>
+<span class="n">jinja_env</span><span class="o">.</span><span class="n">filters</span><span class="p">[</span><span class="s1">&#39;multiply_by&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">multiply_by</span>
+<span class="n">doc</span><span class="o">.</span><span class="n">render</span><span class="p">(</span><span class="n">context</span><span class="p">,</span><span class="n">jinja_env</span><span class="p">)</span>
+<span class="n">doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="s2">&quot;generated_doc.docx&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Then in your template, you will be able to use</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">Euros</span> <span class="n">price</span> <span class="p">:</span> <span class="p">{{</span> <span class="n">price_dollars</span><span class="o">|</span><span class="n">multiply_by</span><span class="p">(</span><span class="mf">0.88</span><span class="p">)</span> <span class="p">}}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>The best way to see how it works is to read examples, they are located in <cite>tests/</cite> directory.
+Docx test templates are in <cite>tests/templates/</cite>. To generate final docx files:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cd</span> <span class="n">tests</span><span class="o">/</span>
+<span class="n">python</span> <span class="n">runtests</span><span class="o">.</span><span class="n">py</span>
+</pre></div>
+</div>
+<p>Generated files are located in <cite>tests/output</cite> directory.</p>
+</div>
+<div class="section" id="share">
+<h2>Share<a class="headerlink" href="#share" title="Permalink to this headline">¶</a></h2>
+<p>If you like this project, please rate and share it here : <a class="reference external" href="http://rate.re/github/elapouya/python-docx-template">http://rate.re/github/elapouya/python-docx-template</a></p>
+<p class="rubric">Functions index</p>
+<p class="rubric">Functions documentation</p>
 </div>
 </div>
 <div class="section" id="indices-and-tables">
